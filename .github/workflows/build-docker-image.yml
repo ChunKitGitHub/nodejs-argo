@@ -21,7 +21,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-
+        
+      - name: Lowercase repository owner
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+        env:
+          OWNER: '${{ github.repository_owner }}'
+          
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -32,18 +38,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # 关键修改：在这里添加一步，将用户名转换成全小写
-      - name: Downcase owner name
-        run: |
-          echo "OWNER_LC=${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          # 关键修改：这里将原先的 github.repository_owner 改为了 env.OWNER_LC
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/dcdeploycr2026:latest
           labels: |
